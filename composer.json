@@ -1,5 +1,5 @@
 {
-  "name": "khaledsabbah/integrations-http",
+  "name": "khaledsabbah/http-module",
   "type": "library",
   "autoload": {
     "psr-4": {
