@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Libs\Integrations\Http\Contracts;
+namespace Idaratech\Integrations\Contracts;
 
 use Idaratech\Integrations\Http\Enums\ContentType;
 use Idaratech\Integrations\Http\Enums\Method;

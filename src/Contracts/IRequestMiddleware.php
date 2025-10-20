@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Libs\Integrations\Http\Contracts;
+namespace Idaratech\Integrations\Contracts;
 
 use App\Libs\Integrations\Http\Request;
 

@@ -1,11 +1,11 @@
 <?php
 namespace Idaratech\Integrations;
 
-use Illuminate\Support\ServiceProvider;
+use Idaratech\Integrations\Contracts\ResponseMapperInterface;
+use Idaratech\Integrations\Dto\DefaultResponseMapper;
 use Idaratech\Integrations\Http\Transport\LaravelHttpTransport;
 use Idaratech\Integrations\Http\Transport\Transport;
-use Idaratech\Integrations\Dto\Contracts\ResponseMapperInterface;
-use Idaratech\Integrations\Dto\DefaultResponseMapper;
+use Illuminate\Support\ServiceProvider;
 
 class IntegrationsServiceProvider extends ServiceProvider
 {

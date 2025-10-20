@@ -2,19 +2,19 @@
 namespace Idaratech\Integrations;
 
 use GuzzleHttp\RequestOptions;
-use Illuminate\Http\Client\Response as HttpResponse;
-use Idaratech\Integrations\Dto\Contracts\ResponseMapperInterface;
+use Idaratech\Integrations\Contracts\ResponseMapperInterface;
 use Idaratech\Integrations\Dto\DefaultResponseMapper;
-use Idaratech\Integrations\Http\Contracts\IClient as ClientInterface;
-use Idaratech\Integrations\Http\Contracts\IRequest as RequestInterface;
-use Idaratech\Integrations\Http\Contracts\IResponse as ResponseInterface;
+use Idaratech\Integrations\Contracts\IClient as ClientInterface;
+use Idaratech\Integrations\Contracts\IRequest as RequestInterface;
+use Idaratech\Integrations\Contracts\IResponse as ResponseInterface;
 use Idaratech\Integrations\Http\Enums\HeaderKey as HK;
+use Idaratech\Integrations\Http\Support\HeaderBag;
 use Idaratech\Integrations\Http\Support\HttpLogger;
 use Idaratech\Integrations\Http\Support\RequestContextBuilder;
 use Idaratech\Integrations\Http\Support\ResponseFactory;
 use Idaratech\Integrations\Http\Transport\LaravelHttpTransport;
 use Idaratech\Integrations\Http\Transport\Transport;
-use Idaratech\Integrations\Http\Support\HeaderBag;
+use Illuminate\Http\Client\Response as HttpResponse;
 
 class Client implements ClientInterface
 {
@@ -142,7 +142,7 @@ class Client implements ClientInterface
         return $response;
     }
 
-    public function process(RequestInterface $request)
+    public function process(RequestInterface $request): Contracts\IDto
     {
         $response = $this->do($request);
         return $this->responseToDto($response);

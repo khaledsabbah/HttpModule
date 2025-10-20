@@ -2,7 +2,7 @@
 namespace Idaratech\Integrations\Http\Support;
 
 use Idaratech\Integrations\Logger;
-use Idaratech\Integrations\Http\Contracts\IResponse as ResponseInterface;
+use Idaratech\Integrations\Contracts\IResponse as ResponseInterface;
 
 class HttpLogger
 {
@@ -10,9 +10,9 @@ class HttpLogger
 
     public function logResponse(ResponseInterface $response): void
     {
-        $payload = ['status'=>$response->status(),'headers'=>$response->headers(),'json'=>$response->json()];
-        if ($response->status() >= 500) Logger::error('response', $payload);
-        elseif ($response->status() >= 400) Logger::warning('response', $payload);
+        $payload = ['status'=>$response->statusCode(),'headers'=>$response->request()->headers(),'json'=>$response->json()];
+        if ($response->statusCode() >= 500) Logger::error('response', $payload);
+        elseif ($response->statusCode() >= 400) Logger::warning('response', $payload);
         else Logger::info('response', $payload);
     }
 

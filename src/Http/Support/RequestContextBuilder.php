@@ -3,7 +3,7 @@ namespace Idaratech\Integrations\Http\Support;
 
 use GuzzleHttp\RequestOptions;
 use Illuminate\Support\Arr;
-use Idaratech\Integrations\Http\Contracts\IRequest as RequestInterface;
+use Idaratech\Integrations\Contracts\IRequest as RequestInterface;
 
 class RequestContextBuilder
 {

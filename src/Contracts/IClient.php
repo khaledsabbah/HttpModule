@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Libs\Integrations\Http\Contracts;
+namespace Idaratech\Integrations\Contracts;
 
 interface IClient
 {

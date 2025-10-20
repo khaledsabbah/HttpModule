@@ -2,9 +2,9 @@
 namespace Idaratech\Integrations\Http\Support;
 
 use Illuminate\Http\Client\Response as HttpResponse;
-use Idaratech\Integrations\Http\Contracts\IResponse as ResponseInterface;
-use Idaratech\Integrations\Http\Contracts\IRequest as RequestInterface;
-use Idaratech\Integrations\Http\Response;
+use Idaratech\Integrations\Contracts\IResponse as ResponseInterface;
+use Idaratech\Integrations\Contracts\IRequest as RequestInterface;
+use Idaratech\Integrations\Response;
 
 class ResponseFactory
 {

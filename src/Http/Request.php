@@ -1,7 +1,8 @@
 <?php
 namespace Idaratech\Integrations\Http;
 
-use Idaratech\Integrations\Http\Contracts\IClient;
+use Idaratech\Integrations\Contracts\IClient;
+use Idaratech\Integrations\Http\Enums\Method;
 use Idaratech\Integrations\Http\Exceptions\RequestValidationException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException as LaravelValidationException;

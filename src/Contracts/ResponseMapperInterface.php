@@ -1,7 +1,7 @@
 <?php
-namespace Idaratech\Integrations\Dto\Contracts;
+namespace Idaratech\Integrations\Contracts;
 
-use Idaratech\Integrations\Http\Contracts\IResponse as ResponseInterface;
+use Idaratech\Integrations\Contracts\IResponse as ResponseInterface;
 
 interface ResponseMapperInterface
 {
