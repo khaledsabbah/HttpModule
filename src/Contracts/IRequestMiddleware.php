@@ -2,7 +2,7 @@
 
 namespace Idaratech\Integrations\Contracts;
 
-use App\Libs\Integrations\Http\Request;
+use Idaratech\Integrations\Http\Request;
 
 interface IRequestMiddleware
 {
