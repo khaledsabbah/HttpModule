@@ -5,6 +5,7 @@ use Idaratech\Integrations\Contracts\IClient;
 use Idaratech\Integrations\Http\Enums\Method;
 use Idaratech\Integrations\Http\Exceptions\RequestValidationException;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException as LaravelValidationException;
 
 abstract class Request
@@ -16,7 +17,17 @@ abstract class Request
 
     abstract public function method(): Method;
     public function uri(): string { return ''; }
-    public function fullUri(): string { return $this->uri(); }
+
+    public function baseUrl(): string
+    {
+        return "";
+    }
+    public function fullUri(): string {
+        if (Str::isUrl($this->uri()))
+            return $this->uri();
+
+        return $this->baseUrl().$this->uri();
+    }
 
     public function headers(): array { return $this->headers; }
     public function query(): array { return $this->query; }

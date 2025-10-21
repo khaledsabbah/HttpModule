@@ -1,10 +1,11 @@
 <?php
 namespace Idaratech\Integrations\Http\Support;
 
+use Idaratech\Integrations\Http\Response;
 use Illuminate\Http\Client\Response as HttpResponse;
 use Idaratech\Integrations\Contracts\IResponse as ResponseInterface;
 use Idaratech\Integrations\Contracts\IRequest as RequestInterface;
-use Idaratech\Integrations\Response;
+
 
 class ResponseFactory
 {
