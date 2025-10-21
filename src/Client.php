@@ -131,7 +131,9 @@ class Client implements ClientInterface
             'body'    => $this->redactBody($request->body()),
         ]);
 
-        $res = $this->transport->send($method, $url, $options);
+        $res = $this->transport
+            ->withHeaders($this->redactHeaders(HeaderBag::merge($this->headers, $request->headers())))
+            ->send($method, $url, $options);
 
         $response = $this->createResponse($request, $res);
 
