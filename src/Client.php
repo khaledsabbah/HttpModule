@@ -121,7 +121,7 @@ class Client implements ClientInterface
         $ctx = $this->builder->build($request);
         $url = $ctx['url'];
         $options = $ctx['options'];
-        $method = $this->resolveMethod($request->method());
+        $method = $request->method();
 
         $this->logger->logRequest([
             'method'  => $method,

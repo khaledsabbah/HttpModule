@@ -2,13 +2,15 @@
 namespace Idaratech\Integrations\Http;
 
 use Idaratech\Integrations\Contracts\IClient;
+use Idaratech\Integrations\Contracts\IRequest;
+use Idaratech\Integrations\Http\Enums\ContentType;
 use Idaratech\Integrations\Http\Enums\Method;
 use Idaratech\Integrations\Http\Exceptions\RequestValidationException;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException as LaravelValidationException;
 
-abstract class Request
+abstract class Request implements IRequest
 {
     protected array $headers = [];
     protected array $query = [];
@@ -16,7 +18,7 @@ abstract class Request
     protected bool $stopOnFirstFailure = false;
 
     abstract public function method(): Method;
-    public function uri(): string { return ''; }
+    abstract function uri(): string;
 
     public function baseUrl(): string
     {
@@ -70,5 +72,10 @@ abstract class Request
         $s = ['password','token','access_token','secret','authorization'];
         foreach ($s as $k) if (array_key_exists($k, $data)) $data[$k] = '******';
         return $data;
+    }
+
+    public function contentType(): ?ContentType
+    {
+       return ContentType::JSON;
     }
 }
