@@ -122,17 +122,18 @@ class Client implements ClientInterface
         $url = $ctx['url'];
         $options = $ctx['options'];
         $method = $request->method();
+        $mergedHeaders = HeaderBag::merge($this->headers, $request->headers());
 
         $this->logger->logRequest([
             'method'  => $method,
             'url'     => $url,
-            'headers' => $this->redactHeaders(HeaderBag::merge($this->headers, $request->headers())),
+            'headers' => $this->redactHeaders($mergedHeaders),
             'query'   => $request->query(),
             'body'    => $this->redactBody($request->body()),
         ]);
 
         $res = $this->transport
-            ->withHeaders($this->redactHeaders(HeaderBag::merge($this->headers, $request->headers())))
+            ->withHeaders($mergedHeaders)
             ->send($method, $url, $options);
 
         $response = $this->createResponse($request, $res);
