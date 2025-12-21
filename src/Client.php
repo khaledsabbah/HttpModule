@@ -193,6 +193,6 @@ class Client implements ClientInterface
     {
         $len = strlen($value);
         if ($len <= 8) return '******';
-        return substr($value, 0, 4) + str_repeat('*', max(0, $len - 8)) + substr($value, -4);
+        return substr($value, 0, 4) . str_repeat('*', max(0, $len - 8)) . substr($value, -4);
     }
 }
