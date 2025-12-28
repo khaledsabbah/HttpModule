@@ -2,11 +2,16 @@
 namespace Idaratech\Integrations;
 
 use GuzzleHttp\RequestOptions;
-use Idaratech\Integrations\Contracts\ResponseMapperInterface;
-use Idaratech\Integrations\Dto\DefaultResponseMapper;
+use Idaratech\Integrations\CircuitBreaker\CircuitBreaker;
+use Idaratech\Integrations\CircuitBreaker\CircuitBreakerFactory;
+use Idaratech\Integrations\CircuitBreaker\CircuitBreakerInterceptor;
+use Idaratech\Integrations\CircuitBreaker\Config\CircuitBreakerConfig;
+use Idaratech\Integrations\CircuitBreaker\Exceptions\CircuitOpenException;
 use Idaratech\Integrations\Contracts\IClient as ClientInterface;
 use Idaratech\Integrations\Contracts\IRequest as RequestInterface;
 use Idaratech\Integrations\Contracts\IResponse as ResponseInterface;
+use Idaratech\Integrations\Contracts\ResponseMapperInterface;
+use Idaratech\Integrations\Dto\DefaultResponseMapper;
 use Idaratech\Integrations\Http\Enums\HeaderKey as HK;
 use Idaratech\Integrations\Http\Support\HeaderBag;
 use Idaratech\Integrations\Http\Support\HttpLogger;
@@ -15,6 +20,7 @@ use Idaratech\Integrations\Http\Support\ResponseFactory;
 use Idaratech\Integrations\Http\Transport\LaravelHttpTransport;
 use Idaratech\Integrations\Http\Transport\Transport;
 use Illuminate\Http\Client\Response as HttpResponse;
+use Throwable;
 
 class Client implements ClientInterface
 {
@@ -30,6 +36,8 @@ class Client implements ClientInterface
     protected HttpLogger $logger;
     protected ResponseFactory $responseFactory;
     protected ResponseMapperInterface $mapper;
+    protected ?CircuitBreakerInterceptor $circuitBreakerInterceptor = null;
+    protected bool $circuitBreakerEnabled = false;
 
     public function __construct(?string $baseUri = null, array $headers = [], array $options = [])
     {
@@ -42,6 +50,9 @@ class Client implements ClientInterface
         $this->logger = new HttpLogger();
         $this->responseFactory = new ResponseFactory();
         $this->mapper = new DefaultResponseMapper();
+
+        // Auto-configure circuit breaker if config is provided
+        $this->configureCircuitBreakerFromConfig();
     }
 
     public function withHeaders(array $headers): ClientInterface
@@ -114,14 +125,21 @@ class Client implements ClientInterface
         return $this;
     }
 
+    /**
+     * @throws Throwable
+     * @throws CircuitOpenException
+     */
     public function do(RequestInterface $request): ResponseInterface
     {
+        $this->circuitBreakerInterceptor?->before($request);
+
+
         $request->runBeforeMiddlewares($this);
 
         $ctx = $this->builder->build($request);
         $url = $ctx['url'];
         $options = $ctx['options'];
-        $method = $request->method();
+        $method = $this->resolveMethod($request->method());
         $mergedHeaders = HeaderBag::merge($this->headers, $request->headers());
 
         $this->logger->logRequest([
@@ -132,17 +150,24 @@ class Client implements ClientInterface
             'body'    => $this->redactBody($request->body()),
         ]);
 
-        $res = $this->transport
-            ->withHeaders($mergedHeaders)
-            ->send($method, $url, $options);
+        try {
+            $res = $this->transport
+                ->withHeaders($mergedHeaders)
+                ->send($method, $url, $options);
 
-        $response = $this->createResponse($request, $res);
+            $response = $this->createResponse($request, $res);
 
-        $request->runAfterMiddlewares($this);
+            $this->circuitBreakerInterceptor?->after($request, $response);
 
-        $this->logger->logResponse($response);
+            $request->runAfterMiddlewares($this);
 
-        return $response;
+            $this->logger->logResponse($response);
+
+            return $response;
+        } catch (Throwable $e) {
+            $this->circuitBreakerInterceptor?->onException($request, $e);
+            throw $e;
+        }
     }
 
     public function process(RequestInterface $request): Contracts\IDto
@@ -196,4 +221,52 @@ class Client implements ClientInterface
         if ($len <= 8) return '******';
         return substr($value, 0, 4) . str_repeat('*', max(0, $len - 8)) . substr($value, -4);
     }
+
+    /**
+     * Configure circuit breaker for this client.
+     * Override this method in subclasses to provide custom configuration.
+     *
+     * @return CircuitBreakerConfig|null Circuit breaker configuration or null to use global default
+     */
+    protected function circuitBreakerConfig(): ?CircuitBreakerConfig
+    {
+        return null; // Default: no custom circuit breaker
+    }
+
+    /**
+     * Auto-configure circuit breaker from config if provided.
+     *
+     * @return void
+     */
+    protected function configureCircuitBreakerFromConfig(): void
+    {
+        $config = $this->circuitBreakerConfig();
+
+        // Priority 1: Custom config (highest priority)
+        if ($config !== null) {
+            $factory = app(CircuitBreakerFactory::class);
+            $circuitBreaker = $factory->createFromConfig($config);
+            $this->withCircuitBreaker($circuitBreaker);
+            return;
+        }
+
+        // Priority 2: Per-service enabled flag
+        if ($this->circuitBreakerEnabled) {
+            try {
+                $globalCircuitBreaker = app(CircuitBreaker::class);
+                $this->withCircuitBreaker($globalCircuitBreaker);
+            } catch (\Throwable $e) {
+                // Silently ignore if circuit breaker dependencies are not available
+            }
+        }
+
+        // No global config check - circuit breaker is always per-service controlled
+    }
+
+    public function withCircuitBreaker(CircuitBreaker $circuitBreaker): ClientInterface
+    {
+        $this->circuitBreakerInterceptor = new CircuitBreakerInterceptor($circuitBreaker);
+        return $this;
+    }
+
 }
