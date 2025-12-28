@@ -121,7 +121,7 @@ class Client implements ClientInterface
         $ctx = $this->builder->build($request);
         $url = $ctx['url'];
         $options = $ctx['options'];
-        $method = $request->method();
+        $method = $this->resolveMethod($request->method());
         $mergedHeaders = HeaderBag::merge($this->headers, $request->headers());
 
         $this->logger->logRequest([
@@ -165,8 +165,8 @@ class Client implements ClientInterface
     {
         if (is_string($method)) return strtoupper($method);
         if (is_object($method)) {
-            if (method_exists($method, 'value')) return strtoupper((string) $method->value);
-            if (method_exists($method, 'name')) return strtoupper((string) $method->name);
+            if (isset($method->value)) {return strtoupper((string) $method->value);}
+            if (isset($method->name)) {return strtoupper((string) $method->name);}
             if (is_callable($method)) return strtoupper((string) $method());
             if (method_exists($method, '__toString')) return strtoupper((string) $method);
         }
