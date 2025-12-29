@@ -49,8 +49,6 @@ class Client implements ClientInterface
         $this->logger = new HttpLogger();
         $this->responseFactory = new ResponseFactory();
         $this->mapper = new DefaultResponseMapper();
-
-        // Auto-configure circuit breaker if config is provided
         $this->configureCircuitBreakerFromConfig();
     }
 
@@ -138,7 +136,7 @@ class Client implements ClientInterface
         $ctx = $this->builder->build($request);
         $url = $ctx['url'];
         $options = $ctx['options'];
-        $method = $this->resolveMethod($request->method());
+        $method = $request->method()->value;
         $mergedHeaders = HeaderBag::merge($this->headers, $request->headers());
 
         $this->logger->logRequest([
@@ -185,18 +183,6 @@ class Client implements ClientInterface
         return $this->mapper->map($response);
     }
 
-    protected function resolveMethod($method): string
-    {
-        if (is_string($method)) return strtoupper($method);
-        if (is_object($method)) {
-            if (method_exists($method, 'value')) return strtoupper((string) $method->value);
-            if (method_exists($method, 'name')) return strtoupper((string) $method->name);
-            if (is_callable($method)) return strtoupper((string) $method());
-            if (method_exists($method, '__toString')) return strtoupper((string) $method);
-        }
-        return 'GET';
-    }
-
     protected function redactHeaders(array $headers): array
     {
         $out = [];
@@ -222,26 +208,23 @@ class Client implements ClientInterface
     }
 
     /**
-     * Configure circuit breaker for this client.
      * Override this method in subclasses to provide custom configuration.
      *
-     * @return CircuitBreakerConfig|null Circuit breaker configuration or null to use global default
+     * @return CircuitBreakerConfig|null
      */
     protected function circuitBreakerConfig(): ?CircuitBreakerConfig
     {
-        return null; // Default: no custom circuit breaker
+        return null;
     }
 
     /**
      * Auto-configure circuit breaker from config if provided.
-     *
+     * Only custom config supported - no global fallback
      * @return void
      */
     protected function configureCircuitBreakerFromConfig(): void
     {
         $config = $this->circuitBreakerConfig();
-
-        // Only custom config supported - no global fallback
         if ($config !== null) {
             $factory = app(CircuitBreakerFactory::class);
             $circuitBreaker = $factory->createFromConfig($config);
