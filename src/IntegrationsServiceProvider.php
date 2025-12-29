@@ -1,6 +1,10 @@
 <?php
+
 namespace Idaratech\Integrations;
 
+use Idaratech\Integrations\CircuitBreaker\CircuitBreakerFactory;
+use Idaratech\Integrations\Console\Commands\CircuitBreakerControlCommand;
+use Idaratech\Integrations\Console\Commands\CircuitBreakerStatusCommand;
 use Idaratech\Integrations\Contracts\ResponseMapperInterface;
 use Idaratech\Integrations\Dto\DefaultResponseMapper;
 use Idaratech\Integrations\Http\Transport\LaravelHttpTransport;
@@ -23,6 +27,11 @@ class IntegrationsServiceProvider extends ServiceProvider
         });
 
         $this->app->bind(ResponseMapperInterface::class, DefaultResponseMapper::class);
+
+        // Register circuit breaker factory for per-service configuration
+        $this->app->singleton(CircuitBreakerFactory::class, function () {
+            return new CircuitBreakerFactory();
+        });
     }
 
     public function boot(): void
