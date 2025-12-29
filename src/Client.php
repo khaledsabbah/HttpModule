@@ -37,7 +37,6 @@ class Client implements ClientInterface
     protected ResponseFactory $responseFactory;
     protected ResponseMapperInterface $mapper;
     protected ?CircuitBreakerInterceptor $circuitBreakerInterceptor = null;
-    protected bool $circuitBreakerEnabled = false;
 
     public function __construct(?string $baseUri = null, array $headers = [], array $options = [])
     {
@@ -165,7 +164,7 @@ class Client implements ClientInterface
 
             return $response;
         } catch (Throwable $e) {
-            $this->circuitBreakerInterceptor?->onException($request, $e);
+            $this->circuitBreakerInterceptor?->onException($request);
             throw $e;
         }
     }
@@ -242,25 +241,12 @@ class Client implements ClientInterface
     {
         $config = $this->circuitBreakerConfig();
 
-        // Priority 1: Custom config (highest priority)
+        // Only custom config supported - no global fallback
         if ($config !== null) {
             $factory = app(CircuitBreakerFactory::class);
             $circuitBreaker = $factory->createFromConfig($config);
             $this->withCircuitBreaker($circuitBreaker);
-            return;
         }
-
-        // Priority 2: Per-service enabled flag
-        if ($this->circuitBreakerEnabled) {
-            try {
-                $globalCircuitBreaker = app(CircuitBreaker::class);
-                $this->withCircuitBreaker($globalCircuitBreaker);
-            } catch (\Throwable $e) {
-                // Silently ignore if circuit breaker dependencies are not available
-            }
-        }
-
-        // No global config check - circuit breaker is always per-service controlled
     }
 
     public function withCircuitBreaker(CircuitBreaker $circuitBreaker): ClientInterface

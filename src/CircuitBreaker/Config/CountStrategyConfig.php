@@ -2,15 +2,9 @@
 
 namespace Idaratech\Integrations\CircuitBreaker\Config;
 
-/**
- * Configuration for count-based circuit breaker strategy.
- *
- * Trips the circuit when the absolute failure count exceeds a threshold
- * within a specified time window.
- */
 class CountStrategyConfig extends CircuitBreakerConfig
 {
-    protected int $failureCountThreshold = 5;
+    protected ?int $failureCountThreshold = null;
 
     /**
      * Create a new count strategy configuration instance.
@@ -26,20 +20,36 @@ class CountStrategyConfig extends CircuitBreakerConfig
      * Set the failure count threshold.
      * Circuit trips when this many failures occur within the time window.
      *
-     * @param int $count Number of failures to trip circuit
+     * @param int $count
      * @return self
      */
     public function failureCountThreshold(int $count): self
     {
+        if ($count < 1) {
+            throw new \InvalidArgumentException(
+                "Failure count threshold must be at least 1, got: {$count}"
+            );
+        }
         $this->failureCountThreshold = $count;
         return $this;
     }
 
+    /**
+     * @return int
+     */
     public function getFailureCountThreshold(): int
     {
+        if ($this->failureCountThreshold === null) {
+            throw new \LogicException(
+                'failureCountThreshold not set. Call ->failureCountThreshold() before using this config.'
+            );
+        }
         return $this->failureCountThreshold;
     }
 
+    /**
+     * @return string
+     */
     public function getStrategy(): string
     {
         return 'count';

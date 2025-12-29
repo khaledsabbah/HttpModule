@@ -10,6 +10,11 @@ class CircuitOpenException extends Exception
     protected string $service;
     protected CircuitState $state;
 
+    /**
+     * @param string $service
+     * @param CircuitState $state
+     * @param Exception|null $previous
+     */
     public function __construct(
         string $service,
         CircuitState $state = CircuitState::OPEN,

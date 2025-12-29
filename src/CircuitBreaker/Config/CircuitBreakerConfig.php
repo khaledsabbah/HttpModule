@@ -2,12 +2,6 @@
 
 namespace Idaratech\Integrations\CircuitBreaker\Config;
 
-/**
- * Abstract base class for circuit breaker configuration.
- *
- * Provides shared configuration properties and methods that are common
- * to all circuit breaker strategies.
- */
 abstract class CircuitBreakerConfig
 {
     protected int $timeWindow = 60;
@@ -21,13 +15,16 @@ abstract class CircuitBreakerConfig
     protected array $ignoredStatusCodes = [];
 
     /**
-     * Set the time window in seconds to track requests/failures.
-     *
-     * @param int $seconds Time window in seconds
+     * @param int $seconds
      * @return static
      */
     public function timeWindow(int $seconds): static
     {
+        if ($seconds < 1) {
+            throw new \InvalidArgumentException(
+                "Time window must be at least 1 seconds, got: {$seconds}"
+            );
+        }
         $this->timeWindow = $seconds;
         return $this;
     }
@@ -35,11 +32,16 @@ abstract class CircuitBreakerConfig
     /**
      * Set the interval in seconds before attempting recovery (OPEN → HALF_OPEN).
      *
-     * @param int $seconds Interval in seconds
+     * @param int $seconds
      * @return static
      */
     public function intervalToHalfOpen(int $seconds): static
     {
+        if ($seconds < 1) {
+            throw new \InvalidArgumentException(
+                "Interval to half-open must be at least 1 second, got: {$seconds}"
+            );
+        }
         $this->intervalToHalfOpen = $seconds;
         return $this;
     }
@@ -47,11 +49,16 @@ abstract class CircuitBreakerConfig
     /**
      * Set the number of consecutive successes needed to close the circuit.
      *
-     * @param int $count Number of successes
+     * @param int $count
      * @return static
      */
     public function successThreshold(int $count): static
     {
+        if ($count < 1) {
+            throw new \InvalidArgumentException(
+                "Success threshold must be at least 1, got: {$count}"
+            );
+        }
         $this->successThreshold = $count;
         return $this;
     }
@@ -59,7 +66,7 @@ abstract class CircuitBreakerConfig
     /**
      * Set the storage adapter type ('redis' or 'cache').
      *
-     * @param string $type Storage type
+     * @param string $type
      * @return static
      */
     public function storage(string $type): static
@@ -71,7 +78,7 @@ abstract class CircuitBreakerConfig
     /**
      * Set the cache key prefix for circuit breaker state.
      *
-     * @param string $prefix Cache key prefix
+     * @param string $prefix
      * @return static
      */
     public function prefix(string $prefix): static
@@ -83,7 +90,7 @@ abstract class CircuitBreakerConfig
     /**
      * Set the Redis connection name (only for Redis storage).
      *
-     * @param string|null $connection Redis connection name
+     * @param string|null $connection
      * @return static
      */
     public function redisConnection(?string $connection): static
@@ -95,7 +102,7 @@ abstract class CircuitBreakerConfig
     /**
      * Set the cache store name (only for cache storage).
      *
-     * @param string|null $store Cache store name
+     * @param string|null $store
      * @return static
      */
     public function cacheStore(?string $store): static
@@ -107,7 +114,7 @@ abstract class CircuitBreakerConfig
     /**
      * Set the HTTP status codes that are considered failures.
      *
-     * @param array $codes Array of HTTP status codes
+     * @param array $codes
      * @return static
      */
     public function failureStatusCodes(array $codes): static
@@ -119,7 +126,7 @@ abstract class CircuitBreakerConfig
     /**
      * Set the HTTP status codes that should be ignored by the circuit breaker.
      *
-     * @param array $codes Array of HTTP status codes
+     * @param array $codes
      * @return static
      */
     public function ignoredStatusCodes(array $codes): static
@@ -127,8 +134,6 @@ abstract class CircuitBreakerConfig
         $this->ignoredStatusCodes = $codes;
         return $this;
     }
-
-    // Getters
 
     public function getTimeWindow(): int
     {
@@ -150,9 +155,9 @@ abstract class CircuitBreakerConfig
         return $this->storage;
     }
 
-    public function getPrefix(): ?string
+    public function getPrefix(): string
     {
-        return $this->prefix;
+        return $this->prefix ?? config('integrations.circuit_breaker_prefix', 'cb:app');
     }
 
     public function getRedisConnection(): ?string

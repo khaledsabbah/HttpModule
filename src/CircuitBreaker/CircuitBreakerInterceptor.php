@@ -5,6 +5,7 @@ namespace Idaratech\Integrations\CircuitBreaker;
 use Idaratech\Integrations\CircuitBreaker\Exceptions\CircuitOpenException;
 use Idaratech\Integrations\Contracts\IRequest;
 use Idaratech\Integrations\Contracts\IResponse;
+use Psr\SimpleCache\InvalidArgumentException;
 
 class CircuitBreakerInterceptor
 {
@@ -20,6 +21,7 @@ class CircuitBreakerInterceptor
      * Check if the circuit allows the request (before middleware).
      *
      * @throws CircuitOpenException
+     * @throws InvalidArgumentException
      */
     public function before(IRequest $request): void
     {
@@ -35,6 +37,7 @@ class CircuitBreakerInterceptor
 
     /**
      * Record the result after the request completes (after middleware).
+     * @throws InvalidArgumentException
      */
     public function after(IRequest $request, IResponse $response): void
     {
@@ -46,8 +49,10 @@ class CircuitBreakerInterceptor
 
     /**
      * Record a failure when an exception occurs.
+     * @param IRequest $request
+     * @throws InvalidArgumentException
      */
-    public function onException(IRequest $request, \Throwable $exception): void
+    public function onException(IRequest $request): void
     {
         $service = $this->resolveServiceName($request);
         $this->circuitBreaker->failure($service);
@@ -55,6 +60,8 @@ class CircuitBreakerInterceptor
 
     /**
      * Resolve the service name from the request.
+     * @param IRequest $request
+     * @return string
      */
     protected function resolveServiceName(IRequest $request): string
     {

@@ -12,15 +12,12 @@ use Idaratech\Integrations\CircuitBreaker\Storage\RedisStorage;
 use Idaratech\Integrations\CircuitBreaker\Strategy\CountStrategy;
 use Idaratech\Integrations\CircuitBreaker\Strategy\RateStrategy;
 
-/**
- * Factory for creating circuit breaker instances from configuration objects.
- */
 class CircuitBreakerFactory
 {
     /**
      * Create a circuit breaker from a configuration object.
      *
-     * @param CircuitBreakerConfig $config Configuration object
+     * @param CircuitBreakerConfig $config
      * @return CircuitBreaker
      */
     public function createFromConfig(CircuitBreakerConfig $config): CircuitBreaker
@@ -30,7 +27,6 @@ class CircuitBreakerFactory
 
         $circuitBreaker = new CircuitBreaker($storage, $strategy);
 
-        // Set optional configurations
         $circuitBreaker->setFailureStatusCodes($config->getFailureStatusCodes());
         $circuitBreaker->setIgnoredStatusCodes($config->getIgnoredStatusCodes());
 
@@ -46,7 +42,7 @@ class CircuitBreakerFactory
     protected function createStorageFromConfig(CircuitBreakerConfig $config): CircuitBreakerStorage
     {
         $storageType = $config->getStorage();
-        $prefix = $config->getPrefix() ?? config('integrations.circuit_breaker.prefix', 'circuit_breaker');
+        $prefix = $config->getPrefix();
 
         if ($storageType === 'redis') {
             return new RedisStorage($prefix, $config->getRedisConnection());
